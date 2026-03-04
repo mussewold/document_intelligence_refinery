@@ -4,7 +4,7 @@ from src.agents.triage import TriageAgent
 async def main():
     agent = TriageAgent()
     pdf_files = [
-        "./data/Annual_Report_JUNE-2019.pdf",
+        "./data/RepoInvestigator_Architecture_Report.pdf",
         # "./data/Consumer Price Index July 2025.pdf"
     ]
 

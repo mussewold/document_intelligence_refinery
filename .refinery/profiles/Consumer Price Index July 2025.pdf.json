@@ -1,0 +1,17 @@
+{
+  "file_name": "Consumer Price Index July 2025.pdf",
+  "primary_language": "en",
+  "language_confidence": 0.6769652366638184,
+  "layout_complexity": "mixed",
+  "domain_hint": "technical",
+  "estimated_extraction_cost": "needs_vision_model",
+  "total_pages": 13,
+  "total_text_length": 16869,
+  "pages": null,
+  "element_counts": {
+    "text": 0,
+    "table": 5,
+    "figure": 15,
+    "total_pages": 13
+  }
+}

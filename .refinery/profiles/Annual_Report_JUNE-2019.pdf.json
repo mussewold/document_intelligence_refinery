@@ -1,0 +1,17 @@
+{
+  "file_name": "Annual_Report_JUNE-2019.pdf",
+  "primary_language": "en",
+  "language_confidence": 0.7244647145271301,
+  "layout_complexity": "mixed",
+  "domain_hint": "financial",
+  "estimated_extraction_cost": "needs_vision_model",
+  "total_pages": 32,
+  "total_text_length": 57083,
+  "pages": null,
+  "element_counts": {
+    "text": 0,
+    "table": 10,
+    "figure": 27,
+    "total_pages": 32
+  }
+}

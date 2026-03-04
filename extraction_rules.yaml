@@ -1,0 +1,45 @@
+fast_text:
+  description: >
+    Strategy A — Fast Text (low-cost pdfplumber-based extraction engine).
+    Designed for native digital, single-column documents where a simple
+    character-stream based extractor is sufficient.
+
+  engine: pdfplumber
+
+  triggers:
+    origin_type:
+      - native_digital
+    layout_complexity:
+      - single_column
+
+  thresholds:
+    # Minimum average character count per page for a document to be considered
+    # to have a "meaningful character stream".
+    #
+    # Tuned during Phase 0 exploration; this initial value is intentionally
+    # conservative and should be revisited once we have corpus statistics.
+    min_chars_per_page: 100
+
+    # Minimum average character density (chars / page area) for the document.
+    # Pages below this are heavily penalized in the final confidence.
+    min_avg_char_density: 1.0e-5
+
+    # Maximum allowable average image-to-page area ratio for Fast Text to be
+    # considered reliable. Above this, more vision-heavy strategies should be
+    # preferred.
+    max_image_area_ratio: 0.5
+
+    # Suggested minimum overall confidence score (0–1) for accepting
+    # FastTextExtractor output without escalation to a more expensive strategy.
+    min_confidence: 0.7
+
+  signals:
+    - name: char_count
+      description: Raw character count per page from the extracted text.
+    - name: char_density
+      description: Character count divided by page area (width × height).
+    - name: image_area_ratio
+      description: Total image area on the page divided by page area.
+    - name: font_metadata
+      description: Boolean flag indicating whether font metadata was observed on the page.
+

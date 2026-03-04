@@ -1,0 +1,17 @@
+{
+  "file_name": "RepoInvestigator_Architecture_Report.pdf",
+  "primary_language": "en",
+  "language_confidence": 0.5884305834770203,
+  "layout_complexity": "mixed",
+  "domain_hint": "general",
+  "estimated_extraction_cost": "fast_text_sufficient",
+  "total_pages": 2,
+  "total_text_length": 2052,
+  "pages": null,
+  "element_counts": {
+    "text": 0,
+    "table": 0,
+    "figure": 0,
+    "total_pages": 2
+  }
+}
