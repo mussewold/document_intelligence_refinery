@@ -31,7 +31,7 @@ class TriageAgent:
             element_counts=element_counts,
         )
 
-        return DocumentProfile(
+        profile = DocumentProfile(
             file_name=pdf_path.name,
             origin_type=origin_type,
             primary_language=primary_language,
@@ -43,6 +43,16 @@ class TriageAgent:
             total_text_length=len(full_text),
             element_counts=element_counts,
         )
+
+        # Save to dir .refinery/profiles as requested
+        output_dir = Path(".refinery/profiles")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / f"{pdf_path.name}.json"
+        
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(profile.model_dump_json(indent=2))
+
+        return profile
 
     async def analyze_batch(self, pdf_paths: List[str]) -> List[DocumentProfile]:
         tasks = [self.analyze(p) for p in pdf_paths]

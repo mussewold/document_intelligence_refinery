@@ -4,8 +4,8 @@ from src.agents.triage import TriageAgent
 async def main():
     agent = TriageAgent()
     pdf_files = [
-        "./data/2013-E.C-Procurement-information.pdf",
-        "./data/2013-E.C-Audit-finding-information.pdf"
+        "./data/Annual_Report_JUNE-2019.pdf",
+        # "./data/Consumer Price Index July 2025.pdf"
     ]
 
     results = await agent.analyze_batch(pdf_files)
