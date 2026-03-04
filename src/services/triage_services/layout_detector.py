@@ -4,18 +4,27 @@ from collections import Counter
 from huggingface_hub import hf_hub_download
 import asyncio
 
-# Resolve weights path and load model
-_weights_path = hf_hub_download(
-    repo_id="juliozhao/DocLayout-YOLO-DocStructBench",
-    filename="doclayout_yolo_docstructbench_imgsz1024.pt"
-)
-_model = YOLOv10(_weights_path)
+_model = None
+
+
+def get_model():
+    global _model
+    if _model is None:
+        weights_path = hf_hub_download(
+            repo_id="juliozhao/DocLayout-YOLO-DocStructBench",
+            filename="doclayout_yolo_docstructbench_imgsz1024.pt"
+        )
+        _model = YOLOv10(weights_path)
+    return _model
+
+
 executor = asyncio.get_running_loop() if asyncio.get_event_loop().is_running() else None
 
 
 async def detect_layout_for_page(page_np: np.ndarray):
     loop = asyncio.get_running_loop()
-    results = await loop.run_in_executor(executor, lambda: _model.predict(page_np, imgsz=1024, conf=0.25))
+    model = get_model()
+    results = await loop.run_in_executor(executor, lambda: model.predict(page_np, imgsz=1024, conf=0.25))
     result = results[0]
 
     counts = {"text": 0, "table": 0, "figure": 0}
@@ -23,7 +32,6 @@ async def detect_layout_for_page(page_np: np.ndarray):
         label = result.names[int(box.cls)]
         if label in counts:
             counts[label] += 1
-
     # Heuristic for layout complexity
     if counts["table"] > 3:
         complexity = "table_heavy"
