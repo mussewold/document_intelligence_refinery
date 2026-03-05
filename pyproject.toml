@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "doclayout-yolo>=0.0.4",
+    "httpx>=0.27.0",
+    "Pillow>=10.0.0",
     "docling>=2.0.0",
     "fast-langdetect>=1.0.0",
     "huggingface-hub>=0.23,<1",

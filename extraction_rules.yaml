@@ -43,3 +43,33 @@ fast_text:
     - name: font_metadata
       description: Boolean flag indicating whether font metadata was observed on the page.
 
+# Strategy C — Vision-Augmented (cost: high)
+vision_augmented:
+  description: >
+    VLM via OpenRouter (Gemini Flash / GPT-4o-mini). Use when document is
+    scanned_image, or Strategy A/B confidence is below threshold, or handwriting
+    is detected. Budget guard caps token spend per document and logs estimated cost.
+
+  engine: openrouter_vlm
+
+  triggers:
+    origin_type:
+      - scanned_image
+    fallback_when:
+      - strategy_a_b_confidence_below_threshold
+      - handwriting_detected
+
+  budget_guard:
+    # Max total tokens (input + output) allowed for a single document.
+    # Exceeding this aborts further page calls and raises.
+    max_tokens_per_document: 500000
+
+  models:
+    default: "google/gemini-2.0-flash-001"
+    budget_aware_alternatives:
+      - "openai/gpt-4o-mini"
+      - "google/gemini-2.0-flash-exp:free"
+
+  env:
+    OPENROUTER_API_KEY: "Required for VisionExtractor."
+
