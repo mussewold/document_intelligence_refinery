@@ -49,6 +49,7 @@ class DocumentProfile(BaseModel):
     file_name: str
 
     # Document-level signals
+    origin_type: str = "native_digital"  # native_digital | scanned_image | mixed | form_fillable
     primary_language: str
     language_confidence: float
 
