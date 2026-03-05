@@ -1,0 +1,15 @@
+{
+  "file_name": "dummy.pdf",
+  "primary_language": "en",
+  "language_confidence": 0.99,
+  "layout_complexity": "single_column",
+  "domain_hint": "legal",
+  "estimated_extraction_cost": "fast_text_sufficient",
+  "total_pages": 1,
+  "total_text_length": 11,
+  "pages": null,
+  "element_counts": {
+    "text": 10,
+    "total_pages": 1
+  }
+}

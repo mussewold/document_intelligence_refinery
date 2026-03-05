@@ -1,0 +1,17 @@
+{
+  "file_name": "2013-E.C-Audit-finding-information.pdf",
+  "primary_language": "am",
+  "language_confidence": 1.0,
+  "layout_complexity": "mixed",
+  "domain_hint": "general",
+  "estimated_extraction_cost": "needs_vision_model",
+  "total_pages": 3,
+  "total_text_length": 1645,
+  "pages": null,
+  "element_counts": {
+    "text": 0,
+    "table": 0,
+    "figure": 3,
+    "total_pages": 3
+  }
+}

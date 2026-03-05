@@ -1,0 +1,17 @@
+{
+  "file_name": "2013-E.C-Procurement-information.pdf",
+  "primary_language": "am",
+  "language_confidence": 0.9995529651641846,
+  "layout_complexity": "mixed",
+  "domain_hint": "general",
+  "estimated_extraction_cost": "needs_vision_model",
+  "total_pages": 3,
+  "total_text_length": 2615,
+  "pages": null,
+  "element_counts": {
+    "text": 0,
+    "table": 0,
+    "figure": 5,
+    "total_pages": 3
+  }
+}
