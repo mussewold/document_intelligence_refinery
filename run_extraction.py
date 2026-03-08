@@ -15,8 +15,8 @@ from pathlib import Path
 from src.agents.extractor import ExtractionRouter
 from src.agents.triage import TriageAgent
 from src.services.triage_services.artifact_loader import DocumentArtifacts
-from src.services.chunking_engine import ChunkingEngine
-from src.services.page_index_builder import PageIndexBuilder, query_page_index
+from src.agents.chunker import ChunkingEngine
+from src.agents.indexer import PageIndexBuilder, query_page_index
 
 
 async def main(pdf_path: str) -> None:

@@ -7,8 +7,26 @@ Builds a hierarchical PageIndex tree (PageIndexNode) over an ExtractedDocument +
 and supports querying the tree for the top-k most relevant sections for a topic.
 """
 
+import json
+import logging
+import os
+import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, List, Optional, Tuple
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+try:
+    from langchain_huggingface import HuggingFaceEndpoint
+    from langchain_core.prompts import PromptTemplate
+except ImportError:
+    HuggingFaceEndpoint = None
+    PromptTemplate = None
+
+logger = logging.getLogger(__name__)
 
 from ..models.extracted_document import ExtractedDocument, TextBlock
 from ..models.ldu import LDU
@@ -34,11 +52,61 @@ class SimpleSummarizer:
         if not text:
             return title
         snippet = text[: self.max_chars]
-        # Naive sentence split
         parts = [p.strip() for p in snippet.split(".") if p.strip()]
         if not parts:
             return snippet.strip()
         return ". ".join(parts[:sentences]).strip() + "."
+
+
+class LLMSummarizer:
+    """
+    LLM-based summarizer using HuggingFace serverless inference.
+    Falls back to SimpleSummarizer if initialization or API call fails.
+    """
+
+    def __init__(self, max_chars: int = 3000) -> None:
+        self.max_chars = max_chars
+        self.fallback = SimpleSummarizer(max_chars)
+        self.llm = None
+        
+        hf_token = os.environ.get("HUGGINGFACE_ACCESS_KEY") or os.environ.get("HUGGINGFACEHUB_API_TOKEN")
+        if hf_token and HuggingFaceEndpoint:
+            try:
+                # Using a fast instruction model
+                self.llm = HuggingFaceEndpoint(
+                    repo_id="HuggingFaceH4/zephyr-7b-beta",
+                    task="text-generation",
+                    max_new_tokens=150,
+                    do_sample=False,
+                    huggingfacehub_api_token=hf_token,
+                )
+                self.prompt = PromptTemplate.from_template(
+                    "<|system|>\nYou are a concise document analyst. Summarize the text in 1-2 short sentences.\n"
+                    "<|user|>\nSection Title: {title}\nText: {text}\n<|assistant|>\n"
+                )
+            except Exception as e:
+                logger.warning(f"Could not init HuggingFace Endpoint for summarizer: {e}")
+                self.llm = None
+
+    async def summarize(self, title: str, text: str, sentences: int = 3) -> str:
+        if not text:
+            return title
+        
+        if not self.llm:
+            return await self.fallback.summarize(title, text, sentences)
+            
+        snippet = text[: self.max_chars]
+        try:
+            # We use an executor because running LLM chain might be blocking
+            import asyncio
+            loop = asyncio.get_running_loop()
+            chain = self.prompt | self.llm
+            result = await loop.run_in_executor(None, chain.invoke, {"title": title, "text": snippet})
+            # Clean up potential leading/trailing whitespace
+            return result.strip()
+        except Exception as e:
+            logger.warning(f"LLM Summarization failed, falling back to basic extraction. Error: {e}")
+            return await self.fallback.summarize(title, text, sentences)
 
 
 class PageIndexBuilder:
@@ -52,10 +120,10 @@ class PageIndexBuilder:
     def __init__(
         self,
         config: Optional[PageIndexConfig] = None,
-        summarizer: Optional[SimpleSummarizer] = None,
+        summarizer: Optional[LLMSummarizer] = None,
     ) -> None:
         self.config = config or PageIndexConfig()
-        self.summarizer = summarizer or SimpleSummarizer(self.config.max_summary_chars)
+        self.summarizer = summarizer or LLMSummarizer(self.config.max_summary_chars)
 
     def _section_headers(self, doc: ExtractedDocument) -> List[Tuple[int, TextBlock]]:
         """
@@ -196,6 +264,19 @@ class PageIndexBuilder:
         full_text = "\n".join(l.content or "" for l in ldus)
         root.key_entities = self._key_entities(full_text)
         root.summary = await self.summarizer.summarize(root.title, full_text, sentences=self.config.summary_sentences)
+        
+        # Save to disk as JSON
+        output_dir = Path(".refinery/pageindex")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        # Handle doc_id ending with .pdf to name files .json
+        base_name = doc.doc_id.replace(".pdf", "")
+        file_path = output_dir / f"{base_name}.json"
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(root.model_dump_json(indent=2))
+        except Exception as e:
+            logger.error(f"Failed to save PageIndex to {file_path}: {e}")
+            
         return root
 
 

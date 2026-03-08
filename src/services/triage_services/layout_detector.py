@@ -18,13 +18,10 @@ def get_model():
     return _model
 
 
-executor = asyncio.get_running_loop() if asyncio.get_event_loop().is_running() else None
-
-
 async def detect_layout_for_page(page_np: np.ndarray):
     loop = asyncio.get_running_loop()
     model = get_model()
-    results = await loop.run_in_executor(executor, lambda: model.predict(page_np, imgsz=1024, conf=0.25))
+    results = await loop.run_in_executor(None, lambda: model.predict(page_np, imgsz=1024, conf=0.25))
     result = results[0]
 
     counts = {"text": 0, "table": 0, "figure": 0}
