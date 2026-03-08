@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document Intelligence Refinery</title>
+  <meta name="description" content="LangGraph-powered document query, audit, and fact extraction interface." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">Refinery</span>
+      </div>
+      <span class="version-badge">v1.0</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" id="nav-query" data-panel="panel-query">
+        <span class="nav-icon">💬</span> Query
+      </button>
+      <button class="nav-btn" id="nav-audit" data-panel="panel-audit">
+        <span class="nav-icon">🔍</span> Audit Mode
+      </button>
+      <button class="nav-btn" id="nav-facts" data-panel="panel-facts">
+        <span class="nav-icon">📊</span> Fact Table
+      </button>
+      <button class="nav-btn" id="nav-upload" data-panel="panel-upload">
+        <span class="nav-icon">📄</span> Upload
+      </button>
+    </nav>
+
+    <div class="sidebar-section">
+      <div class="section-label">Documents</div>
+      <div id="doc-list" class="doc-list">
+        <div class="doc-empty">No documents yet</div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div id="server-status" class="status-dot status-checking">Connecting…</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ─ Header ──────────────────────────────────── -->
+    <header class="topbar">
+      <h1 class="page-title" id="page-title">Query Interface</h1>
+      <div class="topbar-right">
+        <div id="active-doc-badge" class="active-doc-badge hidden">
+          <span class="active-dot"></span>
+          <span id="active-doc-name">—</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ─ Panel: Query ────────────────────────────── -->
+    <section class="panel active" id="panel-query">
+      <div class="card query-card">
+        <div class="tool-selector">
+          <span class="tool-label">Tool:</span>
+          <label class="tool-radio">
+            <input type="radio" name="tool" value="auto" checked id="tool-auto" /> Auto
+          </label>
+          <label class="tool-radio">
+            <input type="radio" name="tool" value="pageindex" id="tool-pageindex" />
+            <span class="tool-chip chip-blue">PageIndex</span>
+          </label>
+          <label class="tool-radio">
+            <input type="radio" name="tool" value="semantic" id="tool-semantic" />
+            <span class="tool-chip chip-purple">Semantic</span>
+          </label>
+          <label class="tool-radio">
+            <input type="radio" name="tool" value="sql" id="tool-sql" />
+            <span class="tool-chip chip-green">SQL</span>
+          </label>
+        </div>
+
+        <div class="input-row">
+          <textarea id="query-input" class="query-input" rows="3"
+            placeholder="Ask anything about your document…"></textarea>
+          <button id="query-btn" class="btn btn-primary">
+            <span class="btn-text">Ask</span>
+            <span class="btn-icon">→</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="query-result" class="result-area hidden">
+        <div class="result-card">
+          <div class="result-header">
+            <h3 class="result-title">Answer</h3>
+            <div id="tool-trace-badges" class="tool-trace"></div>
+          </div>
+          <div id="answer-text" class="answer-text"></div>
+        </div>
+
+        <div id="provenance-section" class="provenance-section hidden">
+          <button class="provenance-toggle" id="provenance-toggle">
+            📎 Provenance Chain
+            <span id="prov-count" class="prov-count"></span>
+            <span class="toggle-arrow">▼</span>
+          </button>
+          <div id="provenance-cards" class="provenance-cards"></div>
+        </div>
+      </div>
+
+      <div id="query-loading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <div class="loading-steps" id="loading-steps">
+          <div class="loading-step active">🔎 Navigating page index…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─ Panel: Audit ────────────────────────────── -->
+    <section class="panel" id="panel-audit">
+      <div class="card">
+        <div class="audit-header-info">
+          <div class="audit-icon">🔍</div>
+          <div>
+            <h2 class="card-title">Audit Mode</h2>
+            <p class="card-sub">Paste a claim to verify it against the document corpus.</p>
+          </div>
+        </div>
+        <div class="input-row">
+          <textarea id="audit-input" class="query-input" rows="3"
+            placeholder="e.g. "The report states revenue was $4.2B in Q3 2024""></textarea>
+          <button id="audit-btn" class="btn btn-audit">
+            <span class="btn-text">Verify</span>
+            <span class="btn-icon">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="audit-result" class="result-area hidden">
+        <div class="audit-verdict-card" id="audit-verdict-card">
+          <div id="audit-verdict-badge" class="audit-badge"></div>
+          <div id="audit-score-bar" class="audit-score-bar">
+            <div class="score-track">
+              <div id="audit-score-fill" class="score-fill"></div>
+            </div>
+            <span id="audit-score-label" class="score-label"></span>
+          </div>
+          <div id="audit-answer" class="audit-answer-text"></div>
+        </div>
+
+        <div id="audit-provenance" class="provenance-section hidden">
+          <button class="provenance-toggle" id="audit-prov-toggle">
+            📎 Supporting Citations
+            <span id="audit-prov-count" class="prov-count"></span>
+            <span class="toggle-arrow">▼</span>
+          </button>
+          <div id="audit-provenance-cards" class="provenance-cards"></div>
+        </div>
+      </div>
+
+      <div id="audit-loading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <span>Verifying claim…</span>
+      </div>
+    </section>
+
+    <!-- ─ Panel: Fact Table ───────────────────────── -->
+    <section class="panel" id="panel-facts">
+      <div class="card">
+        <div class="facts-toolbar">
+          <h2 class="card-title">Fact Table</h2>
+          <div class="facts-filters">
+            <input id="fact-search" class="fact-search" type="text" placeholder="Filter by key…" />
+            <button id="facts-refresh" class="btn btn-sm btn-outline">↻ Refresh</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="facts-loading" class="loading-state hidden">
+        <div class="spinner"></div><span>Loading facts…</span>
+      </div>
+
+      <div id="facts-table-wrapper" class="table-wrapper">
+        <table class="facts-table" id="facts-table">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Value</th>
+              <th>Unit</th>
+              <th>Period</th>
+              <th>Page</th>
+              <th>Document</th>
+            </tr>
+          </thead>
+          <tbody id="facts-tbody">
+            <tr><td colspan="6" class="empty-row">No facts extracted yet. Upload a document first.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─ Panel: Upload ───────────────────────────── -->
+    <section class="panel" id="panel-upload">
+      <div class="card upload-card" id="upload-card">
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-icon">📄</div>
+          <p class="drop-title">Drop a PDF here</p>
+          <p class="drop-sub">or click to browse</p>
+          <input type="file" id="file-input" accept=".pdf" hidden />
+        </div>
+      </div>
+
+      <div id="upload-progress" class="upload-progress hidden">
+        <div class="stepper">
+          <div class="step" id="step-triage">
+            <div class="step-dot"></div>
+            <div class="step-label">Triage</div>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step-extract">
+            <div class="step-dot"></div>
+            <div class="step-label">Extraction</div>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step-chunk">
+            <div class="step-dot"></div>
+            <div class="step-label">Chunking</div>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step-facts">
+            <div class="step-dot"></div>
+            <div class="step-label">Facts</div>
+          </div>
+        </div>
+        <div id="upload-status-text" class="upload-status-text">Processing…</div>
+      </div>
+
+      <div id="upload-result" class="upload-result hidden"></div>
+    </section>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
